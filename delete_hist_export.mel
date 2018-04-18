@@ -1,0 +1,19 @@
+// NOTE: select all the shapes that you want to export
+// NOTE: change the address below
+
+//Store list of the selected objects in a string array
+string $selection[] = `ls -sl`;
+
+//For every item in that list...
+for($obj in $selection){
+
+    //Delete history and center pivot
+    DeleteAllHistory;
+    CenterPivot;
+    
+	//Select the mesh
+    select -r $obj;
+    
+	//export fbx
+    file -force -options "v=0;" -typ "FBX export" -pr -es ("C:/Users/Hojjat/Desktop/Texture/new/Marni_ver6/FBX/auto/"+$obj+".fbx");
+}

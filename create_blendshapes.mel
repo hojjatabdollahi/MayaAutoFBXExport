@@ -1,0 +1,56 @@
+//Name of the head
+string $head = "HEAD";
+string $headName = "HeadOrig";
+
+//Create a copy of the neutral face
+select -r -sym $head;
+duplicate -rr;
+move -r 0 100 0;
+rename `ls -sl` $headName;
+//what does this do? I don't know!
+string $fddOrig[] = `listRelatives -f -ad -type transform $headName`;
+select -cl;
+for ($fd in $fddOrig) {
+    select -add $fd;  
+}
+doDelete;    
+
+// Make the headOrig a blendshape deformer
+select -r -sym $headName ;
+blendShape -frontOfChain;
+
+
+//reselect the head to make copies of blendshapes
+select -r -sym $head;
+string $sels[] = `ls -sl`;
+string $selsHistory[] = `listHistory $sels[0]`;
+string $findBlend[] = `ls -typ blendShape  $selsHistory`;
+string $findWeights[] = `listAttr -m ($findBlend[0] + ".w")`; //List of blendshape names
+int $index = 0;
+
+// make copies of blendshapes
+for($blendshapeName in $findWeights){ // foreach blendshape
+    $index = $index + 1;
+    
+    // copy the blendshape
+    select -r -sym $head;
+    setAttr ($findBlend[0]+"."+$blendshapeName) 1; // set the blendshape to 1
+    duplicate -rr;
+    int $x = $index * 100;
+    move -r $x 100 0;
+    rename `ls -sl` $blendshapeName; // rename the copy of the blendshape to the name of the blendshape
+
+    // delete the lattice
+    string $fdds[] = `listRelatives -f -ad -type transform $blendshapeName`; // find the lattice around the head
+    
+    select -cl;
+    for ($fd in $fdds)
+        select -add $fd; // select the lattice box
+    doDelete; // delete the lattice
+    
+    
+    blendShape -e  -t $headName ($index-1) $blendshapeName 1 $headName;
+    
+    // reset
+    setAttr ($findBlend[0]+"."+$blendshapeName) 0; // set the blendshape back to neutral
+}
